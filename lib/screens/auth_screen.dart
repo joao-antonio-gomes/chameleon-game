@@ -1,6 +1,9 @@
+import 'package:chameleon/exception/business_exception.dart';
+import 'package:chameleon/screens/components/snack_bar.dart';
+import 'package:chameleon/services/auth_service.dart';
 import 'package:flutter/material.dart';
 
-import 'utils/MyColors.dart';
+import 'utils/my_colors.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -12,6 +15,14 @@ class AuthScreen extends StatefulWidget {
 class _AuthScreenState extends State<AuthScreen> {
   bool _wantToRegister = false;
   final _formKey = GlobalKey<FormState>();
+
+  final AuthService _authService = AuthService();
+
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
 
   void _toggleRegister() {
     setState(() {
@@ -29,8 +40,8 @@ class _AuthScreenState extends State<AuthScreen> {
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  MyColors.topGradientBlue,
-                  MyColors.bottomGradientBlue,
+                  MyColors.topGradient,
+                  MyColors.bottomGradient,
                 ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -48,11 +59,11 @@ class _AuthScreenState extends State<AuthScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Image.asset(
-                        "assets/images/logo.png",
-                        height: 128,
+                        "assets/images/logo_1.png",
+                        height: 200,
                       ),
                       const Text(
-                        "GymApp",
+                        "Camaleão",
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             fontSize: 48,
@@ -61,6 +72,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                       const SizedBox(height: 32),
                       TextFormField(
+                        controller: _emailController,
                         decoration: getAuthenticationInputDecoration("E-mail"),
                         validator: (String? value) {
                           if (value!.isEmpty) {
@@ -71,6 +83,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
+                        controller: _passwordController,
                         decoration: getAuthenticationInputDecoration("Senha"),
                         obscureText: true,
                       ),
@@ -80,12 +93,14 @@ class _AuthScreenState extends State<AuthScreen> {
                           children: [
                             const SizedBox(height: 16),
                             TextFormField(
+                              controller: _confirmPasswordController,
                               decoration: getAuthenticationInputDecoration(
                                   "Confirme a senha"),
                               obscureText: true,
                             ),
                             const SizedBox(height: 16),
                             TextFormField(
+                              controller: _nameController,
                               decoration:
                                   getAuthenticationInputDecoration("Nome"),
                             ),
@@ -103,6 +118,8 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                       TextButton(
                         onPressed: _toggleRegister,
+                        style:
+                            TextButton.styleFrom(foregroundColor: Colors.white),
                         child: Text(_wantToRegister
                             ? "Já tem uma conta? Entre"
                             : "Ainda não tem uma conta? Cadastre-se"),
@@ -118,13 +135,43 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
-  submit() {
+  submit() async {
+    final email = _emailController.text;
+    final password = _passwordController.text;
+    final name = _nameController.text;
+
     if (_formKey.currentState!.validate()) {
-      print("Formulário válido");
+      if (_wantToRegister) {
+        await signUp(name, email, password);
+      } else {
+        await signIn(email, password);
+      }
+
       return;
     }
 
+    // TODO: melhorar validações
     print("Formulário inválido");
+  }
+
+  Future<void> signIn(String email, String password) async {
+    try {
+      await _authService.signIn(email: email, password: password);
+
+      Navigator.of(context).pushReplacementNamed("/home");
+    } on BusinessException catch (e) {
+      showSnackBar(context: context, message: e.message);
+    }
+  }
+
+  Future<void> signUp(String name, String email, String password) async {
+    try {
+      await _authService.signUp(name: name, email: email, password: password);
+
+      Navigator.of(context).pushReplacementNamed("/home");
+    } on BusinessException catch (e) {
+      showSnackBar(context: context, message: e.message);
+    }
   }
 
   InputDecoration getAuthenticationInputDecoration(String label) {
