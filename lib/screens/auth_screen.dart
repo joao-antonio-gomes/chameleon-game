@@ -73,6 +73,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       const SizedBox(height: 32),
                       TextFormField(
                         controller: _emailController,
+                        style: const TextStyle(color: Colors.black),
                         decoration: getAuthenticationInputDecoration("E-mail"),
                         validator: (String? value) {
                           if (value!.isEmpty) {
@@ -84,6 +85,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _passwordController,
+                        style: const TextStyle(color: Colors.black),
                         decoration: getAuthenticationInputDecoration("Senha"),
                         obscureText: true,
                       ),
@@ -94,6 +96,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             const SizedBox(height: 16),
                             TextFormField(
                               controller: _confirmPasswordController,
+                              style: const TextStyle(color: Colors.black),
                               decoration: getAuthenticationInputDecoration(
                                   "Confirme a senha"),
                               obscureText: true,
@@ -101,6 +104,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             const SizedBox(height: 16),
                             TextFormField(
                               controller: _nameController,
+                              style: const TextStyle(color: Colors.black),
                               decoration:
                                   getAuthenticationInputDecoration("Nome"),
                             ),

@@ -4,13 +4,14 @@ A game about spies
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+### Use cases
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- [x] As a visitor, I want to see the homepage
+- [x] As a visitor, I want to sign up
+- [x] As a visitor, I want to log in
+- [x] As a user, I want to log out
+- [X] As a user, I want to create a game room
+- [ ] As a user, I want to join a game room
+- [ ] As a user, I want to start a game
+- [ ] As a user, I want to leave a game room before the game starts
+- [ ] As a user, I want to leave a game room after the game starts
