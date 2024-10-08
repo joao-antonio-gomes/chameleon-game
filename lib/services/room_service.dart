@@ -1,3 +1,4 @@
+import 'package:chameleon/exception/business_exception.dart';
 import 'package:chameleon/models/app_user.dart';
 import 'package:chameleon/screens/components/snack_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -84,10 +85,10 @@ class RoomService {
 
           return room;
         } else {
-          throw Exception('Sala cheia');
+          throw BusinessException('Não é possível entrar, a sala está cheia');
         }
       } else {
-        throw Exception('Sala não encontrada');
+        throw BusinessException('Sala não encontrada');
       }
     }
 

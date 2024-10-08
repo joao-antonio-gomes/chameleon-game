@@ -1,3 +1,4 @@
+import 'package:chameleon/screens/components/snack_bar.dart';
 import 'package:chameleon/screens/room_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -111,8 +112,10 @@ class _EnterRoomDialogState extends State<EnterRoomDialog> {
     }).catchError((error) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(error.toString()),
+          showSnackBar(
+            context: context,
+            message: error.toString(),
+            isError: true,
           ),
         );
       }

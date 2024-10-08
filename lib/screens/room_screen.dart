@@ -20,7 +20,7 @@ class RoomScreen extends StatefulWidget {
 
 class _RoomScreenState extends State<RoomScreen> {
   List<String> _previousPlayerIds = [];
-  Map<String, AppUser> _players = {};
+  final Map<String, AppUser> _players = {};
 
   @override
   Widget build(BuildContext context) {
@@ -38,9 +38,6 @@ class _RoomScreenState extends State<RoomScreen> {
         }
 
         if (!snapshot.hasData || !snapshot.data!.exists) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            showSnackBar(context: context, message: 'Sala não encontrada');
-          });
           return const HomeScreen();
         }
 
@@ -147,6 +144,13 @@ class _RoomScreenState extends State<RoomScreen> {
       'players':
           FieldValue.arrayRemove([FirebaseAuth.instance.currentUser!.uid])
     });
+
+    if (room.players.length == 1) {
+      await FirebaseFirestore.instance
+          .collection('rooms')
+          .doc(room.id)
+          .delete();
+    }
   }
 
   Future<void> _copyRoomCodeToClipboard(Room room, BuildContext context) async {
@@ -185,7 +189,6 @@ class _RoomScreenState extends State<RoomScreen> {
 
     final users = results.expand((snapshot) {
       return snapshot.docs.map((doc) {
-        print(doc.data());
         return AppUser.fromJson(doc.data() as Map<String, dynamic>);
       });
     }).toList();
@@ -210,11 +213,13 @@ class _RoomScreenState extends State<RoomScreen> {
       if (newPlayerIds.isNotEmpty) {
         for (String newPlayerId in newPlayerIds) {
           _getUserInfo(newPlayerId).then((newPlayer) {
-            showSnackBar(
-              context: context,
-              message: '${newPlayer.displayName} entrou na sala',
-              isError: false,
-            );
+            if (mounted) {
+              showSnackBar(
+                context: context,
+                message: '${newPlayer.displayName} entrou na sala',
+                isError: false,
+              );
+            }
           });
         }
       }
@@ -222,10 +227,12 @@ class _RoomScreenState extends State<RoomScreen> {
       if (leftPlayerIds.isNotEmpty) {
         for (String leftPlayerId in leftPlayerIds) {
           _getUserInfo(leftPlayerId).then((leftPlayer) {
-            showSnackBar(
-              context: context,
-              message: '${leftPlayer.displayName} saiu da sala',
-            );
+            if (mounted) {
+              showSnackBar(
+                context: context,
+                message: '${leftPlayer.displayName} saiu da sala',
+              );
+            }
           });
         }
       }

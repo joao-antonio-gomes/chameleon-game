@@ -2,6 +2,8 @@ import 'package:chameleon/services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import 'auth_screen.dart';
+
 class ScreenRouter extends StatelessWidget {
   final String title;
   final Widget body;
@@ -62,6 +64,7 @@ class ScreenRouter extends StatelessWidget {
             title: const Text('Logout'),
             onTap: () {
               AuthService().signOut();
+              Navigator.of(context).pushReplacementNamed("/login");
             },
           ),
         ],
