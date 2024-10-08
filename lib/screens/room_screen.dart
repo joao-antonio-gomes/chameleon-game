@@ -20,6 +20,7 @@ class RoomScreen extends StatefulWidget {
 
 class _RoomScreenState extends State<RoomScreen> {
   List<String> _previousPlayerIds = [];
+  Map<String, AppUser> _players = {};
 
   @override
   Widget build(BuildContext context) {
@@ -51,6 +52,7 @@ class _RoomScreenState extends State<RoomScreen> {
         // Agendar a comparação após o frame atual
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _checkForPlayerChanges(currentPlayerIds);
+          _updatePlayersInfo(currentPlayerIds);
         });
 
         // Verificar se o usuário está na sala
@@ -97,47 +99,25 @@ class _RoomScreenState extends State<RoomScreen> {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               Expanded(
-                child: FutureBuilder<List<AppUser>>(
-                  future: _getPlayersInfo(room.players),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-
-                    if (snapshot.hasError) {
-                      return const Text('Erro ao carregar jogadores');
-                    }
-
-                    List<AppUser> players = snapshot.data ?? [];
-
-                    if (players.isEmpty) {
-                      return const Text('Nenhum jogador na sala');
-                    }
-
-                    if (room.players.length < players.length) {
-                      showSnackBar(
-                          context: context, message: 'Jogador saiu da sala');
-                    }
-
-                    return ListView.builder(
-                      itemCount: players.length,
-                      itemBuilder: (context, index) {
-                        AppUser player = players[index];
-                        return ListTile(
-                          leading: CircleAvatar(
-                            backgroundImage: player.photoURL != null
-                                ? NetworkImage(player.photoURL!)
-                                : null,
-                            child: player.photoURL == null
-                                ? const Icon(Icons.person)
-                                : null,
-                          ),
-                          title: Text(player.displayName),
-                        );
-                      },
-                    );
-                  },
-                ),
+                child: _players.isEmpty
+                    ? const Text('Nenhum jogador na sala')
+                    : ListView.builder(
+                        itemCount: _players.values.length,
+                        itemBuilder: (context, index) {
+                          AppUser player = _players.values.elementAt(index);
+                          return ListTile(
+                            leading: CircleAvatar(
+                              backgroundImage: player.photoURL != null
+                                  ? NetworkImage(player.photoURL!)
+                                  : null,
+                              child: player.photoURL == null
+                                  ? const Icon(Icons.person)
+                                  : null,
+                            ),
+                            title: Text(player.displayName),
+                          );
+                        },
+                      ),
               ),
               Expanded(
                 child: Padding(
@@ -228,20 +208,64 @@ class _RoomScreenState extends State<RoomScreen> {
           .toList();
 
       if (newPlayerIds.isNotEmpty) {
-        // Exibir notificação de novo jogador
-        showSnackBar(
-            context: context,
-            message: 'Novo jogador entrou na sala',
-            isError: false);
+        for (String newPlayerId in newPlayerIds) {
+          _getUserInfo(newPlayerId).then((newPlayer) {
+            showSnackBar(
+              context: context,
+              message: '${newPlayer.displayName} entrou na sala',
+              isError: false,
+            );
+          });
+        }
       }
 
       if (leftPlayerIds.isNotEmpty) {
-        // Exibir notificação de jogador saiu
-        showSnackBar(context: context, message: 'Jogador saiu da sala');
+        for (String leftPlayerId in leftPlayerIds) {
+          _getUserInfo(leftPlayerId).then((leftPlayer) {
+            showSnackBar(
+              context: context,
+              message: '${leftPlayer.displayName} saiu da sala',
+            );
+          });
+        }
       }
     }
 
-    // Atualizar a lista anterior de jogadores
     _previousPlayerIds = List.from(currentPlayerIds);
+  }
+
+  Future<AppUser> _getUserInfo(String userId) async {
+    DocumentSnapshot userDoc =
+        await FirebaseFirestore.instance.collection('users').doc(userId).get();
+
+    return AppUser.fromJson(userDoc.data() as Map<String, dynamic>);
+  }
+
+  void _updatePlayersInfo(List<String> currentPlayerIds) {
+    // IDs de jogadores que ainda não estão no mapa
+    List<String> newPlayerIds =
+        currentPlayerIds.where((id) => !_players.containsKey(id)).toList();
+
+    // Buscar dados dos novos jogadores
+    if (newPlayerIds.isNotEmpty) {
+      _getPlayersInfo(newPlayerIds).then((newPlayers) {
+        setState(() {
+          for (AppUser player in newPlayers) {
+            _players[player.uid] = player;
+          }
+        });
+      });
+    }
+
+    // Remover jogadores que saíram
+    List<String> leftPlayerIds =
+        _players.keys.where((id) => !currentPlayerIds.contains(id)).toList();
+    if (leftPlayerIds.isNotEmpty) {
+      setState(() {
+        for (String id in leftPlayerIds) {
+          _players.remove(id);
+        }
+      });
+    }
   }
 }
