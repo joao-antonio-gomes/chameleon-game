@@ -22,7 +22,7 @@ A game about spies
 - [ ] As a user, I want to share a game room link
 
 - [ ] When owner room leaves, the owner should be transferred to another player
-- [ ] When room becomes full, I want to see a message that the room is full
+- [x] When room becomes full, I want to see a message that the room is full
 - [x] When room becomes empty, the room should be deleted
 
 - [x] As a user, if room is full, I want to see a message that the room is full

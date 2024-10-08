@@ -90,6 +90,21 @@ class _RoomScreenState extends State<RoomScreen> {
                 },
                 child: const Text('Copiar código'),
               ),
+              Visibility(
+                  visible: room.maxPlayers == room.players.length,
+                  child: const Column(
+                    children: [
+                      SizedBox(height: 20),
+                      Text(
+                        'Sala cheia',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.red,
+                        ),
+                      ),
+                    ],
+                  )),
               const SizedBox(height: 20),
               const Text(
                 'Jogadores na sala:',
