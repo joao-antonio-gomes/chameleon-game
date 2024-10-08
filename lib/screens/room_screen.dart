@@ -150,14 +150,14 @@ class _RoomScreenState extends State<RoomScreen> {
                       : 'Nova partida'),
                 ),
               ),
-              const SizedBox(height: 40),
-              Visibility(
-                visible: room.currentTheme != null,
-                child: const Text(
-                  'Novo tema sorteado!',
-                  style: TextStyle(fontSize: 18),
-                ),
-              ),
+              // const SizedBox(height: 40),
+              // Visibility(
+              //   visible: room.currentTheme != null,
+              //   child: const Text(
+              //     'Novo tema sorteado!',
+              //     style: TextStyle(fontSize: 18),
+              //   ),
+              // ),
               const SizedBox(height: 40),
               Visibility(
                 visible: room.status == RoomStatus.playing,
