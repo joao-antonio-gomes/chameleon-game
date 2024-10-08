@@ -1,8 +1,10 @@
 import 'package:chameleon/exception/business_exception.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   signUp(
       {required String name,
@@ -12,7 +14,17 @@ class AuthService {
       UserCredential userCredential = await _auth
           .createUserWithEmailAndPassword(email: email, password: password);
 
-      await userCredential.user!.updateDisplayName(name);
+      final user = userCredential.user;
+      await user!.updateDisplayName(name);
+
+      // Salva os dados do usuário na coleção 'users' do Firestore
+      await _firestore.collection('users').doc(user.uid).set({
+        'uid': user.uid,
+        'email': user.email,
+        'displayName': name,
+        'photoURL': user.photoURL,
+        // Outros dados que desejar
+      });
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
         throw BusinessException('A senha é muito fraca');

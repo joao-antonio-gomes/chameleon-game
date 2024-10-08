@@ -8,31 +8,28 @@ import 'package:uuid/uuid.dart';
 import '../models/room.dart';
 
 class RoomService {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _fireauth = FirebaseAuth.instance;
+
   Future<Room?> createRoom(
       {required BuildContext context, required int maxPlayers}) async {
-    User? currentUser = FirebaseAuth.instance.currentUser;
-    FirebaseFirestore _firestore = FirebaseFirestore.instance;
+    User? currentUser = _fireauth.currentUser;
 
     Room? room;
 
     if (currentUser != null) {
-      AppUser user = AppUser(
-        uid: currentUser.uid,
-        displayName: currentUser.displayName ?? 'Anônimo',
-        email: currentUser.email ?? '',
-        photoURL: currentUser.photoURL ?? '',
-      );
+      AppUser creatorAppUser = AppUser.fromFirebaseUser(currentUser);
 
       room = Room(
-        roomId: const Uuid().v4(),
-        creatorId: currentUser.uid,
-        creator: user,
-        players: [currentUser.uid],
+        id: const Uuid().v4(),
+        creator: creatorAppUser,
+        players: [creatorAppUser.uid],
         maxPlayers: maxPlayers,
       );
 
-      await _firestore.collection('rooms').doc(room.roomId).set(room.toJson());
+      await _firestore.collection('rooms').doc(room.id).set(room.toJson());
 
+      print('ping');
       showSnackBar(
           context: context,
           message: 'Sala criada com sucesso!',
@@ -46,10 +43,10 @@ class RoomService {
   }
 
   Future<Room?> checkIfUserInRoom() async {
-    User? currentUser = FirebaseAuth.instance.currentUser;
+    User? currentUser = _fireauth.currentUser;
 
     if (currentUser != null) {
-      QuerySnapshot snapshot = await FirebaseFirestore.instance
+      QuerySnapshot snapshot = await _firestore
           .collection('rooms')
           .where('players', arrayContains: currentUser.uid)
           .where('status', isEqualTo: 0) // Status de sala ativa
@@ -64,6 +61,35 @@ class RoomService {
     }
 
     // Se o usuário não estiver logado ou se algo falhar, retorna null
+    return null;
+  }
+
+  Future<Room?> enterRoom(String text) async {
+    User? currentUser = _fireauth.currentUser;
+
+    if (currentUser != null) {
+      DocumentSnapshot snapshot =
+          await _firestore.collection('rooms').doc(text).get();
+
+      if (snapshot.exists) {
+        Room room = Room.fromJson(snapshot.data() as Map<String, dynamic>);
+        if (room.players.length < room.maxPlayers) {
+          room.players.add(currentUser.uid);
+
+          await _firestore
+              .collection('rooms')
+              .doc(room.id)
+              .update(room.toJson());
+
+          return room;
+        } else {
+          throw Exception('Sala cheia');
+        }
+      } else {
+        throw Exception('Sala não encontrada');
+      }
+    }
+
     return null;
   }
 }

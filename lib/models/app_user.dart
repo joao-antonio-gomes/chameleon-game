@@ -1,8 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
+
 class AppUser {
   final String uid;
   final String email;
   final String displayName;
-  final String photoURL;
+  final String? photoURL;
 
   AppUser(
       {required this.uid,
@@ -16,6 +18,15 @@ class AppUser {
       email: json['email'],
       displayName: json['displayName'],
       photoURL: json['photoURL'],
+    );
+  }
+
+  factory AppUser.fromFirebaseUser(User user) {
+    return AppUser(
+      uid: user.uid,
+      email: user.email ?? '',
+      displayName: user.displayName ?? 'Anônimo',
+      photoURL: user.photoURL ?? '',
     );
   }
 

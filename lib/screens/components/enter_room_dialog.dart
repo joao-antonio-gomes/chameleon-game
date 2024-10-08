@@ -1,29 +1,27 @@
-import 'package:chameleon/screens/components/snack_bar.dart';
+import 'package:chameleon/screens/room_screen.dart';
 import 'package:flutter/material.dart';
 
 import '../../services/room_service.dart';
-import '../room_screen.dart';
 
-showCreateRoomDialog(BuildContext context) {
+showEnterRoomDialog(BuildContext context) {
   showDialog(
     context: context,
     builder: (context) {
-      return const CreateRoomDialog();
+      return const EnterRoomDialog();
     },
   );
 }
 
-class CreateRoomDialog extends StatefulWidget {
-  const CreateRoomDialog({super.key});
+class EnterRoomDialog extends StatefulWidget {
+  const EnterRoomDialog({super.key});
 
   @override
-  State<CreateRoomDialog> createState() => _CreateRoomDialogState();
+  State<EnterRoomDialog> createState() => _EnterRoomDialogState();
 }
 
-class _CreateRoomDialogState extends State<CreateRoomDialog> {
+class _EnterRoomDialogState extends State<EnterRoomDialog> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _playersController =
-      TextEditingController(text: '4');
+  final TextEditingController _roomId = TextEditingController();
 
   final RoomService _roomService = RoomService();
 
@@ -41,7 +39,7 @@ class _CreateRoomDialogState extends State<CreateRoomDialog> {
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text('Criar Sala'),
+          const Text('Entrar na sala'),
           IconButton(
             icon: const Icon(Icons.close),
             onPressed: () {
@@ -58,18 +56,14 @@ class _CreateRoomDialogState extends State<CreateRoomDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             TextFormField(
-              controller: _playersController,
+              controller: _roomId,
               decoration: const InputDecoration(
-                labelText: 'Quantidade de jogadores',
+                labelText: 'Digite o código da sala',
               ),
               keyboardType: TextInputType.number,
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Informe a quantidade de jogadores';
-                }
-                final intPlayers = int.tryParse(value);
-                if (intPlayers == null || intPlayers < 4) {
-                  return 'A quantidade de jogadores deve ser no mínimo 4';
+                  return 'Informe o código da sala';
                 }
                 return null;
               },
@@ -88,7 +82,7 @@ class _CreateRoomDialogState extends State<CreateRoomDialog> {
         ),
         ElevatedButton(
           onPressed: () {
-            createRoom(context);
+            enterRoom(context);
           },
           child: isLoading
               ? const SizedBox(
@@ -98,32 +92,31 @@ class _CreateRoomDialogState extends State<CreateRoomDialog> {
                     valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                   ),
                 )
-              : const Text('Criar'),
+              : const Text('Entrar'),
         ),
       ],
     );
   }
 
-  void createRoom(BuildContext context) {
-    if (_formKey.currentState!.validate()) {
-      _roomService
-          .createRoom(
-        context: context,
-        maxPlayers: int.parse(_playersController.text),
-      )
-          .then((value) {
-        Navigator.of(context).pop();
-
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => RoomScreen(roomId: value!.id),
-          ),
-        );
-      }).catchError((e) {
-        showSnackBar(context: context, message: e.toString());
-      }).whenComplete(() {
-        setLoading(false);
-      });
+  void enterRoom(BuildContext context) {
+    if (!_formKey.currentState!.validate()) {
+      return;
     }
+
+    setLoading(true);
+
+    _roomService.enterRoom(_roomId.text).then((room) {
+      Navigator.of(context).pop(); // Fecha o diálogo
+      RoomScreen(roomId: room!.id);
+    }).catchError((error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.toString()),
+        ),
+      );
+      setLoading(false);
+    }).whenComplete(() {
+      setLoading(false);
+    });
   }
 }

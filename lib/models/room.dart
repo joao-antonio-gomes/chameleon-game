@@ -2,8 +2,7 @@ import 'package:chameleon/models/app_user.dart';
 import 'package:chameleon/models/room_status.dart';
 
 class Room {
-  String roomId;
-  String creatorId;
+  String id;
   AppUser creator;
   List<String> players;
   int maxPlayers;
@@ -11,8 +10,7 @@ class Room {
   RoomStatus status = RoomStatus.available;
 
   Room({
-    required this.roomId,
-    required this.creatorId,
+    required this.id,
     required this.players,
     required this.creator,
     this.maxPlayers = 4,
@@ -21,8 +19,7 @@ class Room {
 
   factory Room.fromJson(Map<String, dynamic> json) {
     return Room(
-      roomId: json['roomId'],
-      creatorId: json['creatorId'],
+      id: json['id'],
       creator: AppUser.fromJson(json['creator']),
       players: List<String>.from(json['players']),
       maxPlayers: json['maxPlayers'],
@@ -32,11 +29,11 @@ class Room {
 
   Map<String, dynamic> toJson() {
     return {
-      'roomId': roomId,
-      'creatorId': creatorId,
+      'id': id,
       'players': players,
       'maxPlayers': maxPlayers,
       'status': status.index,
+      'creator': creator.toJson(),
     };
   }
 }

@@ -4,6 +4,7 @@ import 'package:chameleon/services/room_service.dart';
 import 'package:flutter/material.dart';
 
 import 'components/create_room_dialog.dart';
+import 'components/enter_room_dialog.dart';
 import 'room_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -60,7 +61,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     if (!inRoom)
                       ElevatedButton(
                         onPressed: () {
-                          print('TODO');
+                          showEnterRoomDialog(context);
                         },
                         style: ElevatedButton.styleFrom(
                             minimumSize: const Size(150, 40)),
@@ -73,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) =>
-                                  RoomScreen(room: snapshot.data!),
+                                  RoomScreen(roomId: snapshot.data!.id),
                             ),
                           );
                         },
