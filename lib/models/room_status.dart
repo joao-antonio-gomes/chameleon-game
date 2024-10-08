@@ -1,1 +1,1 @@
-enum RoomStatus { available, full, inGame, closed }
+enum RoomStatus { available, full, playing, closed }

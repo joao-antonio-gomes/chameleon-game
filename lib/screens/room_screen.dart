@@ -1,7 +1,10 @@
 import 'package:chameleon/models/room.dart';
+import 'package:chameleon/models/room_status.dart';
 import 'package:chameleon/screens/components/snack_bar.dart';
+import 'package:chameleon/screens/components/toggleable_text.dart';
 import 'package:chameleon/screens/home_screen.dart';
 import 'package:chameleon/screens/router_screen.dart';
+import 'package:chameleon/services/room_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +22,7 @@ class RoomScreen extends StatefulWidget {
 }
 
 class _RoomScreenState extends State<RoomScreen> {
+  final RoomService _roomService = RoomService();
   List<String> _previousPlayerIds = [];
   final Map<String, AppUser> _players = {};
 
@@ -131,13 +135,47 @@ class _RoomScreenState extends State<RoomScreen> {
                         },
                       ),
               ),
+              Visibility(
+                visible: room.creator.uid ==
+                        FirebaseAuth.instance.currentUser!.uid &&
+                    room.players.length > 1,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    room.resetGame();
+                    await _roomService.startGame(room);
+                    await _roomService.defineChameleon(room);
+                  },
+                  child: Text(room.status != RoomStatus.playing
+                      ? 'Iniciar partida'
+                      : 'Nova partida'),
+                ),
+              ),
+              const SizedBox(height: 40),
+              Visibility(
+                visible: room.currentTheme != null,
+                child: const Text(
+                  'Novo tema sorteado!',
+                  style: TextStyle(fontSize: 18),
+                ),
+              ),
+              const SizedBox(height: 40),
+              Visibility(
+                visible: room.status == RoomStatus.playing,
+                child: ToggleableText(
+                    style: const TextStyle(fontSize: 18),
+                    text: room.currentChameleon ==
+                            FirebaseAuth.instance.currentUser!.uid
+                        ? 'Tema: você é o Camaleão'
+                        : 'Tema: o tema é ${room.currentTheme}',
+                    obscureInitially: true),
+              ),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 50),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      ElevatedButton(
+                      TextButton(
                         onPressed: () async {
                           await _exitRoom(room);
                         },

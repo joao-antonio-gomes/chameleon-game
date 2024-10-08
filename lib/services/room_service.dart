@@ -7,10 +7,13 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/room.dart';
+import '../models/room_status.dart';
+import 'chat_gpt_service.dart';
 
 class RoomService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _fireauth = FirebaseAuth.instance;
+  final ChatGptService _chatGptService = ChatGptService();
 
   Future<Room?> createRoom(
       {required BuildContext context, required int maxPlayers}) async {
@@ -48,10 +51,16 @@ class RoomService {
     User? currentUser = _fireauth.currentUser;
 
     if (currentUser != null) {
+      final notAllowedRoomStatus = [
+        RoomStatus.closed.index,
+        RoomStatus.full.index
+      ];
+
       QuerySnapshot snapshot = await _firestore
           .collection('rooms')
           .where('players', arrayContains: currentUser.uid)
-          .where('status', isEqualTo: 0) // Status de sala ativa
+          .where('status',
+              whereNotIn: notAllowedRoomStatus) // Status de sala ativa
           .get();
 
       if (snapshot.docs.isNotEmpty) {
@@ -93,5 +102,19 @@ class RoomService {
     }
 
     return null;
+  }
+
+  startGame(Room room) async {
+    room.status = RoomStatus.playing;
+
+    await _chatGptService.generateThemes(room).then((value) {
+      room.setTheme(value);
+      _firestore.collection('rooms').doc(room.id).update(room.toJson());
+    });
+  }
+
+  defineChameleon(Room room) {
+    room.defineChameleon();
+    _firestore.collection('rooms').doc(room.id).update(room.toJson());
   }
 }
