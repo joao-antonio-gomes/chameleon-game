@@ -155,9 +155,10 @@ class _RoomScreenState extends State<RoomScreen> {
   }
 
   Future<void> _exitRoom(Room room) async {
+    var uidExitingPlayer = FirebaseAuth.instance.currentUser!.uid;
+
     await FirebaseFirestore.instance.collection('rooms').doc(room.id).update({
-      'players':
-          FieldValue.arrayRemove([FirebaseAuth.instance.currentUser!.uid])
+      'players': FieldValue.arrayRemove([uidExitingPlayer])
     });
 
     if (room.players.length == 1) {
@@ -165,6 +166,17 @@ class _RoomScreenState extends State<RoomScreen> {
           .collection('rooms')
           .doc(room.id)
           .delete();
+      return;
+    }
+
+    if (room.creator.uid == uidExitingPlayer) {
+      var randomPlayerId = room.players.firstWhere(
+          (playerId) => playerId != uidExitingPlayer,
+          orElse: () => '');
+      var newCreator = await _getUserInfo(randomPlayerId);
+      await FirebaseFirestore.instance.collection('rooms').doc(room.id).update({
+        'creator': newCreator.toJson(),
+      });
     }
   }
 

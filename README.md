@@ -21,7 +21,7 @@ A game about spies
 - [ ] As a room owner, I want to change the game settings before the game starts
 - [ ] As a user, I want to share a game room link
 
-- [ ] When owner room leaves, the owner should be transferred to another player
+- [x] When owner room leaves, the owner should be transferred to another player
 - [x] When room becomes full, I want to see a message that the room is full
 - [x] When room becomes empty, the room should be deleted
 
