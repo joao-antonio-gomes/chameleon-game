@@ -12,7 +12,7 @@ import '../models/app_user.dart';
 class RoomScreen extends StatefulWidget {
   final String roomId; // Passar o roomId em vez do objeto Room
 
-  const RoomScreen({Key? key, required this.roomId}) : super(key: key);
+  const RoomScreen({super.key, required this.roomId});
 
   @override
   State<RoomScreen> createState() => _RoomScreenState();
@@ -79,13 +79,7 @@ class _RoomScreenState extends State<RoomScreen> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () async {
-                  await Clipboard.setData(ClipboardData(text: room.id));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content:
-                          Text('Código copiado para a área de transferência'),
-                    ),
-                  );
+                  await _copyRoomCodeToClipboard(room, context);
                 },
                 child: const Text('Copiar código'),
               ),
@@ -125,8 +119,8 @@ class _RoomScreenState extends State<RoomScreen> {
                                 ? const Icon(Icons.person)
                                 : null,
                           ),
-                          title: Text(player.displayName ?? 'Usuário'),
-                          subtitle: Text(player.email ?? ''),
+                          title: Text(player.displayName),
+                          subtitle: Text(player.email),
                         );
                       },
                     );
@@ -138,6 +132,17 @@ class _RoomScreenState extends State<RoomScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _copyRoomCodeToClipboard(Room room, BuildContext context) async {
+    await Clipboard.setData(ClipboardData(text: room.id));
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Código copiado para a área de transferência'),
+        ),
+      );
+    }
   }
 
   Future<List<AppUser>> _getPlayersInfo(List<String> playerIds) async {

@@ -162,9 +162,9 @@ class _AuthScreenState extends State<AuthScreen> {
     try {
       await _authService.signIn(email: email, password: password);
 
-      Navigator.of(context).pushReplacementNamed("/home");
+      if (mounted) Navigator.of(context).pushReplacementNamed("/home");
     } on BusinessException catch (e) {
-      showSnackBar(context: context, message: e.message);
+      if (mounted) showSnackBar(context: context, message: e.message);
     }
   }
 
@@ -172,9 +172,9 @@ class _AuthScreenState extends State<AuthScreen> {
     try {
       await _authService.signUp(name: name, email: email, password: password);
 
-      Navigator.of(context).pushReplacementNamed("/home");
+      if (mounted) Navigator.of(context).pushReplacementNamed("/home");
     } on BusinessException catch (e) {
-      showSnackBar(context: context, message: e.message);
+      if (mounted) showSnackBar(context: context, message: e.message);
     }
   }
 

@@ -6,10 +6,10 @@ class ErrorHandlerWidget extends StatefulWidget {
   const ErrorHandlerWidget({required super.key, required this.child});
 
   @override
-  _ErrorHandlerWidgetState createState() => _ErrorHandlerWidgetState();
+  ErrorHandlerWidgetState createState() => ErrorHandlerWidgetState();
 }
 
-class _ErrorHandlerWidgetState extends State<ErrorHandlerWidget> {
+class ErrorHandlerWidgetState extends State<ErrorHandlerWidget> {
   // Error handling logic
   void onError(FlutterErrorDetails errorDetails) {
     // Add your error handling logic here, e.g., logging, reporting to a server, etc.
@@ -40,16 +40,17 @@ class ErrorWidgetBuilder extends StatefulWidget {
   final Widget child;
 
   const ErrorWidgetBuilder({
+    super.key,
     required this.builder,
     required this.onError,
     required this.child,
   });
 
   @override
-  _ErrorWidgetBuilderState createState() => _ErrorWidgetBuilderState();
+  ErrorWidgetBuilderState createState() => ErrorWidgetBuilderState();
 }
 
-class _ErrorWidgetBuilderState extends State<ErrorWidgetBuilder> {
+class ErrorWidgetBuilderState extends State<ErrorWidgetBuilder> {
   @override
   void initState() {
     super.initState();

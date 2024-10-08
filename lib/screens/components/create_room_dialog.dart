@@ -105,22 +105,26 @@ class _CreateRoomDialogState extends State<CreateRoomDialog> {
   }
 
   void createRoom(BuildContext context) {
-    if (_formKey.currentState!.validate()) {
+    if (_formKey.currentState!.validate() && mounted) {
       _roomService
           .createRoom(
         context: context,
         maxPlayers: int.parse(_playersController.text),
       )
           .then((value) {
-        Navigator.of(context).pop();
+        if (context.mounted) {
+          Navigator.of(context).pop();
 
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => RoomScreen(roomId: value!.id),
-          ),
-        );
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => RoomScreen(roomId: value!.id),
+            ),
+          );
+        }
       }).catchError((e) {
-        showSnackBar(context: context, message: e.toString());
+        if (context.mounted) {
+          showSnackBar(context: context, message: e.toString());
+        }
       }).whenComplete(() {
         setLoading(false);
       });

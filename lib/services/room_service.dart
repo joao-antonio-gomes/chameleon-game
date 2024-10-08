@@ -29,11 +29,12 @@ class RoomService {
 
       await _firestore.collection('rooms').doc(room.id).set(room.toJson());
 
-      print('ping');
-      showSnackBar(
-          context: context,
-          message: 'Sala criada com sucesso!',
-          isError: false);
+      if (context.mounted) {
+        showSnackBar(
+            context: context,
+            message: 'Sala criada com sucesso!',
+            isError: false);
+      }
     } else {
       showSnackBar(context: context, message: 'Usuário não autenticado!');
       return null;
