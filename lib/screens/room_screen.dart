@@ -19,6 +19,8 @@ class RoomScreen extends StatefulWidget {
 }
 
 class _RoomScreenState extends State<RoomScreen> {
+  List<String> _previousPlayerIds = [];
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<DocumentSnapshot>(
@@ -44,6 +46,12 @@ class _RoomScreenState extends State<RoomScreen> {
         // Converter o documento em um objeto Room
         Room room =
             Room.fromJson(snapshot.data!.data() as Map<String, dynamic>);
+        List<String> currentPlayerIds = room.players;
+
+        // Agendar a comparação após o frame atual
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _checkForPlayerChanges(currentPlayerIds);
+        });
 
         // Verificar se o usuário está na sala
         if (!room.players.contains(FirebaseAuth.instance.currentUser!.uid)) {
@@ -106,6 +114,11 @@ class _RoomScreenState extends State<RoomScreen> {
                       return const Text('Nenhum jogador na sala');
                     }
 
+                    if (room.players.length < players.length) {
+                      showSnackBar(
+                          context: context, message: 'Jogador saiu da sala');
+                    }
+
                     return ListView.builder(
                       itemCount: players.length,
                       itemBuilder: (context, index) {
@@ -120,11 +133,26 @@ class _RoomScreenState extends State<RoomScreen> {
                                 : null,
                           ),
                           title: Text(player.displayName),
-                          subtitle: Text(player.email),
                         );
                       },
                     );
                   },
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 50),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () async {
+                          await _exitRoom(room);
+                        },
+                        child: const Text('Sair da sala'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -132,6 +160,13 @@ class _RoomScreenState extends State<RoomScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _exitRoom(Room room) async {
+    await FirebaseFirestore.instance.collection('rooms').doc(room.id).update({
+      'players':
+          FieldValue.arrayRemove([FirebaseAuth.instance.currentUser!.uid])
+    });
   }
 
   Future<void> _copyRoomCodeToClipboard(Room room, BuildContext context) async {
@@ -176,5 +211,37 @@ class _RoomScreenState extends State<RoomScreen> {
     }).toList();
 
     return users;
+  }
+
+  void _checkForPlayerChanges(List<String> currentPlayerIds) {
+    String currentUserId = FirebaseAuth.instance.currentUser!.uid;
+    if (_previousPlayerIds.isNotEmpty) {
+      // Jogadores que entraram na sala (excluindo o usuário atual)
+      List<String> newPlayerIds = currentPlayerIds
+          .where(
+              (id) => !_previousPlayerIds.contains(id) && id != currentUserId)
+          .toList();
+
+      // Jogadores que saíram da sala (excluindo o usuário atual)
+      List<String> leftPlayerIds = _previousPlayerIds
+          .where((id) => !currentPlayerIds.contains(id) && id != currentUserId)
+          .toList();
+
+      if (newPlayerIds.isNotEmpty) {
+        // Exibir notificação de novo jogador
+        showSnackBar(
+            context: context,
+            message: 'Novo jogador entrou na sala',
+            isError: false);
+      }
+
+      if (leftPlayerIds.isNotEmpty) {
+        // Exibir notificação de jogador saiu
+        showSnackBar(context: context, message: 'Jogador saiu da sala');
+      }
+    }
+
+    // Atualizar a lista anterior de jogadores
+    _previousPlayerIds = List.from(currentPlayerIds);
   }
 }
