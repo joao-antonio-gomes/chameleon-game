@@ -107,12 +107,14 @@ class _EnterRoomDialogState extends State<EnterRoomDialog> {
     setLoading(true);
 
     _roomService.enterRoom(_roomId.text).then((room) {
-      if (context.mounted) Navigator.of(context).pop(); // Fecha o diálogo
-      return Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => RoomScreen(roomId: room!.id),
-        ),
-      );
+      if (context.mounted) {
+        Navigator.of(context).pop(); // Fecha o diálogo
+        return Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => RoomScreen(roomId: room!.id),
+          ),
+        );
+      }
     }).catchError((error) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

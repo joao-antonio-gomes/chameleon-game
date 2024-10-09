@@ -37,10 +37,14 @@ class ToggleableTextState extends State<ToggleableText> {
 
     return Row(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          _obscureText ? _obscure(widget.text) : widget.text,
-          style: widget.style,
+        Expanded(
+          child: Text(
+            softWrap: true, // Permite quebra de linha
+            _obscureText ? _obscure(widget.text) : widget.text,
+            style: widget.style,
+          ),
         ),
         const SizedBox(width: 8),
         GestureDetector(
@@ -55,6 +59,10 @@ class ToggleableTextState extends State<ToggleableText> {
   }
 
   String _obscure(String text) {
-    return text.replaceAll(RegExp(r'.'), '•');
+    String text = '';
+    for (int i = 0; i < 20; i++) {
+      text += '•';
+    }
+    return text;
   }
 }

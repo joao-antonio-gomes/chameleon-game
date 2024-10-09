@@ -151,10 +151,13 @@ class _RoomScreenState extends State<RoomScreen> {
                     try {
                       await _roomService.startGame(room);
                     } catch (e) {
-                      showSnackBar(
-                        context: context,
-                        message: 'Erro ao iniciar partida: $e',
-                      );
+                      print(e);
+                      if (context.mounted) {
+                        showSnackBar(
+                          context: context,
+                          message: 'Erro ao iniciar partida: $e',
+                        );
+                      }
                     } finally {
                       setState(() {
                         _isLoadingNewGame = false;
@@ -185,13 +188,12 @@ class _RoomScreenState extends State<RoomScreen> {
               // ),
               const SizedBox(height: 40),
               Visibility(
-                visible: room.status == RoomStatus.playing,
                 child: ToggleableText(
                     style: const TextStyle(fontSize: 18),
                     text: room.currentChameleon ==
                             FirebaseAuth.instance.currentUser!.uid
-                        ? 'Tema: você é o Camaleão'
-                        : 'Tema: o tema é ${room.currentTheme}',
+                        ? 'Você é o Camaleão'
+                        : 'O tema é ${room.currentTheme}',
                     obscureInitially: true),
               ),
               Expanded(

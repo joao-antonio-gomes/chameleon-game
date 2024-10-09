@@ -9,6 +9,7 @@ class Room {
   String? currentTheme;
   String? currentChameleon;
   Map<String, String>? chameleonByTheme = {};
+  String? threadId = '';
 
   RoomStatus status = RoomStatus.available;
 
@@ -29,6 +30,7 @@ class Room {
     this.currentTheme = '',
     this.currentChameleon = '',
     this.chameleonByTheme = const {},
+    this.threadId = '',
   });
 
   factory Room.fromJson(Map<String, dynamic> json) {
@@ -43,6 +45,7 @@ class Room {
       chameleonByTheme: json['chameleonByTheme'] != null
           ? Map<String, String>.from(json['chameleonByTheme'])
           : {},
+      threadId: json['threadId'],
     );
   }
 
@@ -56,6 +59,7 @@ class Room {
       'currentTheme': currentTheme,
       'currentChameleon': currentChameleon,
       'chameleonByTheme': chameleonByTheme,
+      'threadId': threadId,
     };
   }
 
