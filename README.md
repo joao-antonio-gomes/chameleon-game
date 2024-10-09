@@ -16,8 +16,8 @@ A game about spies
 - [x] As a user, I I'm in a game but exited the app, when I come back I want to rejoin the game
 - [x] As a user, I want to leave a game room before the game starts
 - [x] As a user, I want to see the list of players in the game room while new players are joining
-- [ ] As a user, I want to leave a game room after the game starts
-- [ ] As a room owner, I want to start the game
+- [x] As a user, I want to leave a game room after the game starts
+- [x] As a room owner, I want to start the game
 - [ ] As a room owner, I want to change the game settings before the game starts
 - [ ] As a user, I want to share a game room link
 - [x] When owner room leaves, the owner should be transferred to another player
