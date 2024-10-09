@@ -26,6 +26,8 @@ class _RoomScreenState extends State<RoomScreen> {
   List<String> _previousPlayerIds = [];
   final Map<String, AppUser> _players = {};
 
+  bool _isLoadingNewGame = false;
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<DocumentSnapshot>(
@@ -141,13 +143,36 @@ class _RoomScreenState extends State<RoomScreen> {
                     room.players.length > 1,
                 child: ElevatedButton(
                   onPressed: () async {
-                    room.resetGame();
-                    await _roomService.startGame(room);
-                    await _roomService.defineChameleon(room);
+                    if (_isLoadingNewGame) return;
+
+                    setState(() {
+                      _isLoadingNewGame = true;
+                    });
+                    try {
+                      await _roomService.startGame(room);
+                    } catch (e) {
+                      showSnackBar(
+                        context: context,
+                        message: 'Erro ao iniciar partida: $e',
+                      );
+                    } finally {
+                      setState(() {
+                        _isLoadingNewGame = false;
+                      });
+                    }
                   },
-                  child: Text(room.status != RoomStatus.playing
-                      ? 'Iniciar partida'
-                      : 'Nova partida'),
+                  child: _isLoadingNewGame
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : Text(room.status != RoomStatus.playing
+                          ? 'Iniciar partida'
+                          : 'Nova partida'),
                 ),
               ),
               // const SizedBox(height: 40),

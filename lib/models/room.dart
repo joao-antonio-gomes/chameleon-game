@@ -61,22 +61,26 @@ class Room {
 
   void setTheme(String theme) {
     currentTheme = theme;
+
+    if (currentChameleon != null) {
+      chameleonByTheme!
+          .addEntries([MapEntry(currentTheme!, currentChameleon!)]);
+    }
   }
 
-  void defineChameleon() {
+  void startGame() {
     if (players.isEmpty) return;
-    if (currentTheme == null) return;
 
-    // Define randomly a player to be the chameleon
+    resetGame();
+
     int chameleonIndex = DateTime.now().microsecondsSinceEpoch % players.length;
     currentChameleon = players[chameleonIndex];
 
-    chameleonByTheme![currentTheme!] = currentChameleon!;
+    status = RoomStatus.playing;
   }
 
   void resetGame() {
     currentTheme = null;
     currentChameleon = null;
-    chameleonByTheme = {};
   }
 }
