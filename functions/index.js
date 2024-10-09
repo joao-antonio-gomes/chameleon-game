@@ -1,30 +1,12 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * const {onCall} = require("firebase-functions/v2/https");
- * const {onDocumentWritten} = require("firebase-functions/v2/firestore");
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
-
 const logger = require("firebase-functions/logger");
 const {OpenAI} = require("openai");
 
-// Create and deploy your first functions
-// https://firebase.google.com/docs/functions/get-started
-
-// exports.helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
-
-// functions/index.js (ou index.ts para TypeScript)
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 
-admin.initializeApp();
+const assistantId = process.env.CHAT_GPT_ASSISTANT_ID;
 
-const assistantId = "asst_7Def8M08JcePEukjUnCDjfXl";
+admin.initializeApp();
 
 exports.getTheme = functions.https.onCall(async (data, context) => {
   // Autenticação opcional

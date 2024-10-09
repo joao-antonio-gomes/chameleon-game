@@ -4,20 +4,16 @@ import 'package:chameleon/screens/components/snack_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/chameleon_open_ai.dart';
 import '../models/room.dart';
 import '../models/room_status.dart';
-import 'chat_gpt_service.dart';
 import 'open_ai_service.dart';
 
 class RoomService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _fireauth = FirebaseAuth.instance;
-  final ChatGptService _chatGptService =
-      ChatGptService(apiKey: dotenv.env['CHAT_GPT_KEY']!);
 
   Future<Room?> createRoom(
       {required BuildContext context, required int maxPlayers}) async {
