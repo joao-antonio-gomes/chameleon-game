@@ -1,79 +1,53 @@
-import 'package:chameleon/models/room.dart';
+// lib/views/room/room_screen.dart
+
+import 'package:chameleon/models/app_user.dart';
 import 'package:chameleon/models/room_status.dart';
-import 'package:chameleon/services/room_service.dart';
+import 'package:chameleon/view_models/room_view_model.dart';
 import 'package:chameleon/views/components/snack_bar.dart';
 import 'package:chameleon/views/components/toggleable_text.dart';
 import 'package:chameleon/views/home_screen.dart';
 import 'package:chameleon/views/router_screen.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
-import '../models/app_user.dart';
-
-class RoomScreen extends StatefulWidget {
+class RoomScreen extends StatelessWidget {
   final String roomId;
 
-  const RoomScreen({super.key, required this.roomId});
-
-  @override
-  State<RoomScreen> createState() => _RoomScreenState();
-}
-
-class _RoomScreenState extends State<RoomScreen> {
-  final RoomService _roomService = RoomService();
-  List<String> _previousPlayerIds = [];
-  final Map<String, AppUser> _players = {};
-
-  bool _isLoadingNewGame = false;
+  const RoomScreen({Key? key, required this.roomId}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<DocumentSnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('rooms')
-          .doc(widget.roomId)
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Scaffold(
-            appBar: AppBar(title: const Text('Carregando...')),
-            body: const Center(child: CircularProgressIndicator()),
-          );
-        }
+    return ChangeNotifierProvider(
+      create: (_) => RoomViewModel(roomId: roomId),
+      child: Consumer<RoomViewModel>(
+        builder: (context, viewModel, child) {
+          if (viewModel.room == null) {
+            // Sala não existe ou foi deletada
+            return HomeScreen();
+          }
 
-        if (!snapshot.hasData || !snapshot.data!.exists) {
-          return HomeScreen();
-        }
+          // Verificar se o usuário está na sala
+          if (!viewModel.room!.players
+              .contains(FirebaseAuth.instance.currentUser!.uid)) {
+            return HomeScreen();
+          }
 
-        // Converter o documento em um objeto Room
-        Room room =
-            Room.fromJson(snapshot.data!.data() as Map<String, dynamic>);
-        List<String> currentPlayerIds = room.players;
-
-        // Agendar a comparação após o frame atual
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _checkForPlayerChanges(currentPlayerIds);
-          _updatePlayersInfo(currentPlayerIds);
-        });
-
-        // Verificar se o usuário está na sala
-        if (!room.players.contains(FirebaseAuth.instance.currentUser!.uid)) {
-          return HomeScreen();
-        }
-
-        return _buildRoomScreen(context, room);
-      },
+          return _buildRoomScreen(context, viewModel);
+        },
+      ),
     );
   }
 
-  ScreenRouter _buildRoomScreen(BuildContext context, Room room) {
+  Widget _buildRoomScreen(BuildContext context, RoomViewModel viewModel) {
+    final room = viewModel.room!;
+    final players = viewModel.players;
+
     return ScreenRouter(
       title: 'Sala de ${room.creator.displayName}',
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.only(left: 20, right: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -92,37 +66,38 @@ class _RoomScreenState extends State<RoomScreen> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () async {
-                  await _copyRoomCodeToClipboard(room, context);
+                  await viewModel.copyRoomCodeToClipboard(context);
                 },
                 child: const Text('Copiar código'),
               ),
               Visibility(
-                  visible: room.maxPlayers == room.players.length,
-                  child: const Column(
-                    children: [
-                      SizedBox(height: 20),
-                      Text(
-                        'Sala cheia',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.red,
-                        ),
+                visible: room.maxPlayers == room.players.length,
+                child: const Column(
+                  children: [
+                    SizedBox(height: 20),
+                    Text(
+                      'Sala cheia',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red,
                       ),
-                    ],
-                  )),
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 20),
               const Text(
                 'Jogadores na sala:',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               Expanded(
-                child: _players.isEmpty
+                child: players.isEmpty
                     ? const Text('Nenhum jogador na sala')
                     : ListView.builder(
-                        itemCount: _players.values.length,
+                        itemCount: players.values.length,
                         itemBuilder: (context, index) {
-                          AppUser player = _players.values.elementAt(index);
+                          AppUser player = players.values.elementAt(index);
                           return ListTile(
                             leading: CircleAvatar(
                               backgroundImage: player.photoURL != null
@@ -143,28 +118,18 @@ class _RoomScreenState extends State<RoomScreen> {
                     room.players.length > 1,
                 child: ElevatedButton(
                   onPressed: () async {
-                    if (_isLoadingNewGame) return;
-
-                    setState(() {
-                      _isLoadingNewGame = true;
-                    });
                     try {
-                      await _roomService.startGame(room);
+                      await viewModel.startGame();
                     } catch (e) {
-                      print(e);
                       if (context.mounted) {
                         showSnackBar(
                           context: context,
                           message: 'Erro ao iniciar partida: $e',
                         );
                       }
-                    } finally {
-                      setState(() {
-                        _isLoadingNewGame = false;
-                      });
                     }
                   },
-                  child: _isLoadingNewGame
+                  child: viewModel.isLoadingNewGame
                       ? const SizedBox(
                           width: 20,
                           height: 20,
@@ -180,14 +145,24 @@ class _RoomScreenState extends State<RoomScreen> {
               ),
               const SizedBox(height: 40),
               Visibility(
-                visible: room.status == RoomStatus.playing,
+                visible: viewModel.isGameStarting,
+                child: const Text(
+                  'Uma nova partida está iniciando',
+                  style: TextStyle(fontSize: 18, color: Colors.green),
+                ),
+              ),
+              const SizedBox(height: 40),
+              Visibility(
+                visible: room.status == RoomStatus.playing &&
+                    room.currentTheme != null,
                 child: ToggleableText(
-                    style: const TextStyle(fontSize: 18),
-                    text: room.currentChameleon ==
-                            FirebaseAuth.instance.currentUser!.uid
-                        ? 'Você é o Camaleão'
-                        : 'O tema é ${room.currentTheme}',
-                    obscureInitially: true),
+                  style: const TextStyle(fontSize: 18),
+                  text: room.currentChameleon ==
+                          FirebaseAuth.instance.currentUser!.uid
+                      ? 'Você é o Camaleão'
+                      : 'O tema é ${room.currentTheme}',
+                  obscureInitially: true,
+                ),
               ),
               Expanded(
                 child: Padding(
@@ -197,7 +172,11 @@ class _RoomScreenState extends State<RoomScreen> {
                     children: [
                       TextButton(
                         onPressed: () async {
-                          await _exitRoom(room);
+                          await viewModel.exitRoom();
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                                builder: (context) => HomeScreen()),
+                          );
                         },
                         child: const Text('Sair da sala'),
                       ),
@@ -210,161 +189,5 @@ class _RoomScreenState extends State<RoomScreen> {
         ),
       ),
     );
-  }
-
-  Future<void> _exitRoom(Room room) async {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => HomeScreen(),
-      ),
-    );
-
-    var uidExitingPlayer = FirebaseAuth.instance.currentUser!.uid;
-
-    await FirebaseFirestore.instance.collection('rooms').doc(room.id).update({
-      'players': FieldValue.arrayRemove([uidExitingPlayer])
-    });
-
-    if (room.players.length == 1) {
-      await FirebaseFirestore.instance
-          .collection('rooms')
-          .doc(room.id)
-          .delete();
-      return;
-    }
-
-    if (room.creator.uid == uidExitingPlayer) {
-      var randomPlayerId = room.players.firstWhere(
-          (playerId) => playerId != uidExitingPlayer,
-          orElse: () => '');
-      var newCreator = await _getUserInfo(randomPlayerId);
-      await FirebaseFirestore.instance.collection('rooms').doc(room.id).update({
-        'creator': newCreator.toJson(),
-      });
-    }
-  }
-
-  Future<void> _copyRoomCodeToClipboard(Room room, BuildContext context) async {
-    await Clipboard.setData(ClipboardData(text: room.id));
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Código copiado para a área de transferência'),
-        ),
-      );
-    }
-  }
-
-  Future<List<AppUser>> _getPlayersInfo(List<String> playerIds) async {
-    if (playerIds.isEmpty) return [];
-
-    // Dividir a lista em lotes de no máximo 10 IDs
-    final batches = <Future<QuerySnapshot>>[];
-    const batchSize = 10;
-
-    for (var i = 0; i < playerIds.length; i += batchSize) {
-      final batchIds = playerIds.sublist(
-        i,
-        i + batchSize > playerIds.length ? playerIds.length : i + batchSize,
-      );
-
-      final query = FirebaseFirestore.instance
-          .collection('users')
-          .where(FieldPath.documentId, whereIn: batchIds)
-          .get();
-
-      batches.add(query);
-    }
-
-    final results = await Future.wait(batches);
-
-    final users = results.expand((snapshot) {
-      return snapshot.docs.map((doc) {
-        return AppUser.fromJson(doc.data() as Map<String, dynamic>);
-      });
-    }).toList();
-
-    return users;
-  }
-
-  void _checkForPlayerChanges(List<String> currentPlayerIds) {
-    String currentUserId = FirebaseAuth.instance.currentUser!.uid;
-    if (_previousPlayerIds.isNotEmpty) {
-      // Jogadores que entraram na sala (excluindo o usuário atual)
-      List<String> newPlayerIds = currentPlayerIds
-          .where(
-              (id) => !_previousPlayerIds.contains(id) && id != currentUserId)
-          .toList();
-
-      // Jogadores que saíram da sala (excluindo o usuário atual)
-      List<String> leftPlayerIds = _previousPlayerIds
-          .where((id) => !currentPlayerIds.contains(id) && id != currentUserId)
-          .toList();
-
-      if (newPlayerIds.isNotEmpty) {
-        for (String newPlayerId in newPlayerIds) {
-          _getUserInfo(newPlayerId).then((newPlayer) {
-            if (mounted) {
-              showSnackBar(
-                context: context,
-                message: '${newPlayer.displayName} entrou na sala',
-                isError: false,
-              );
-            }
-          });
-        }
-      }
-
-      if (leftPlayerIds.isNotEmpty) {
-        for (String leftPlayerId in leftPlayerIds) {
-          _getUserInfo(leftPlayerId).then((leftPlayer) {
-            if (mounted) {
-              showSnackBar(
-                context: context,
-                message: '${leftPlayer.displayName} saiu da sala',
-              );
-            }
-          });
-        }
-      }
-    }
-
-    _previousPlayerIds = List.from(currentPlayerIds);
-  }
-
-  Future<AppUser> _getUserInfo(String userId) async {
-    DocumentSnapshot userDoc =
-        await FirebaseFirestore.instance.collection('users').doc(userId).get();
-
-    return AppUser.fromJson(userDoc.data() as Map<String, dynamic>);
-  }
-
-  void _updatePlayersInfo(List<String> currentPlayerIds) {
-    // IDs de jogadores que ainda não estão no mapa
-    List<String> newPlayerIds =
-        currentPlayerIds.where((id) => !_players.containsKey(id)).toList();
-
-    // Buscar dados dos novos jogadores
-    if (newPlayerIds.isNotEmpty) {
-      _getPlayersInfo(newPlayerIds).then((newPlayers) {
-        setState(() {
-          for (AppUser player in newPlayers) {
-            _players[player.uid] = player;
-          }
-        });
-      });
-    }
-
-    // Remover jogadores que saíram
-    List<String> leftPlayerIds =
-        _players.keys.where((id) => !currentPlayerIds.contains(id)).toList();
-    if (leftPlayerIds.isNotEmpty) {
-      setState(() {
-        for (String id in leftPlayerIds) {
-          _players.remove(id);
-        }
-      });
-    }
   }
 }

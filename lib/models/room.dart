@@ -11,14 +11,14 @@ class Room {
   Map<String, String>? chameleonByTheme = {};
   String? threadId = '';
 
-  RoomStatus status = RoomStatus.available;
+  RoomStatus status = RoomStatus.waiting;
 
   Room({
     required this.id,
     required this.players,
     required this.creator,
     this.maxPlayers = 4,
-    this.status = RoomStatus.available,
+    this.status = RoomStatus.waiting,
   });
 
   Room.complete({
@@ -26,7 +26,7 @@ class Room {
     required this.players,
     required this.creator,
     this.maxPlayers = 4,
-    this.status = RoomStatus.available,
+    this.status = RoomStatus.waiting,
     this.currentTheme = '',
     this.currentChameleon = '',
     this.chameleonByTheme = const {},
@@ -72,11 +72,14 @@ class Room {
     }
   }
 
+  void setupGame() {
+    currentTheme = null;
+    currentChameleon = null;
+
+    status = RoomStatus.starting;
+  }
+
   void startGame() {
-    if (players.isEmpty) return;
-
-    resetGame();
-
     int chameleonIndex = DateTime.now().microsecondsSinceEpoch % players.length;
     currentChameleon = players[chameleonIndex];
 
@@ -86,5 +89,7 @@ class Room {
   void resetGame() {
     currentTheme = null;
     currentChameleon = null;
+
+    status = RoomStatus.waiting;
   }
 }

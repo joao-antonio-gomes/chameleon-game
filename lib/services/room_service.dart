@@ -8,7 +8,6 @@ import 'package:uuid/uuid.dart';
 
 import '../models/chameleon_open_ai.dart';
 import '../models/room.dart';
-import '../models/room_status.dart';
 import 'open_ai_service.dart';
 
 class RoomService {
@@ -51,16 +50,10 @@ class RoomService {
     User? currentUser = _fireauth.currentUser;
 
     if (currentUser != null) {
-      final notAllowedRoomStatus = [
-        RoomStatus.closed.index,
-        RoomStatus.full.index
-      ];
-
       QuerySnapshot snapshot = await _firestore
           .collection('rooms')
-          .where('players', arrayContains: currentUser.uid)
-          .where('status',
-              whereNotIn: notAllowedRoomStatus) // Status de sala ativa
+          .where('players',
+              arrayContains: currentUser.uid) // Status de sala ativa
           .get();
 
       if (snapshot.docs.isNotEmpty) {
@@ -105,7 +98,7 @@ class RoomService {
   }
 
   startGame(Room room) async {
-    room.startGame();
+    room.setupGame();
 
     await OpenAIService().startGame(room).then((value) {
       final chameleonOpenAi = ChameleonOpenAi.fromJson(value);
@@ -113,5 +106,17 @@ class RoomService {
       room.threadId = chameleonOpenAi.thread;
       _firestore.collection('rooms').doc(room.id).update(room.toJson());
     });
+  }
+
+  setupGame(Room room) async {
+    room.setupGame();
+
+    _firestore.collection('rooms').doc(room.id).update(room.toJson());
+  }
+
+  resetGame(Room room) async {
+    room.resetGame();
+
+    _firestore.collection('rooms').doc(room.id).update(room.toJson());
   }
 }
