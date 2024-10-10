@@ -1,6 +1,6 @@
 import 'package:chameleon/exception/business_exception.dart';
-import 'package:chameleon/screens/components/snack_bar.dart';
 import 'package:chameleon/services/auth_service.dart';
+import 'package:chameleon/views/components/snack_bar.dart';
 import 'package:flutter/material.dart';
 
 import 'utils/my_colors.dart';

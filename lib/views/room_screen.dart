@@ -1,10 +1,10 @@
 import 'package:chameleon/models/room.dart';
 import 'package:chameleon/models/room_status.dart';
-import 'package:chameleon/screens/components/snack_bar.dart';
-import 'package:chameleon/screens/components/toggleable_text.dart';
-import 'package:chameleon/screens/home_screen.dart';
-import 'package:chameleon/screens/router_screen.dart';
 import 'package:chameleon/services/room_service.dart';
+import 'package:chameleon/views/components/snack_bar.dart';
+import 'package:chameleon/views/components/toggleable_text.dart';
+import 'package:chameleon/views/home_screen.dart';
+import 'package:chameleon/views/router_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +13,7 @@ import 'package:flutter/services.dart';
 import '../models/app_user.dart';
 
 class RoomScreen extends StatefulWidget {
-  final String roomId; // Passar o roomId em vez do objeto Room
+  final String roomId;
 
   const RoomScreen({super.key, required this.roomId});
 

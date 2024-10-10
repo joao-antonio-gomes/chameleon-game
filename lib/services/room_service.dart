@@ -1,6 +1,6 @@
 import 'package:chameleon/exception/business_exception.dart';
 import 'package:chameleon/models/app_user.dart';
-import 'package:chameleon/screens/components/snack_bar.dart';
+import 'package:chameleon/views/components/snack_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';

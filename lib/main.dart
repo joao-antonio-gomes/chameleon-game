@@ -1,7 +1,7 @@
 import 'dart:ui';
 
-import 'package:chameleon/screens/auth_screen.dart';
-import 'package:chameleon/screens/home_screen.dart';
+import 'package:chameleon/views/auth_screen.dart';
+import 'package:chameleon/views/home_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
