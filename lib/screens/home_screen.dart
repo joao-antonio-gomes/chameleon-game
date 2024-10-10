@@ -7,14 +7,9 @@ import 'components/create_room_dialog.dart';
 import 'components/enter_room_dialog.dart';
 import 'room_screen.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class HomeScreen extends StatelessWidget {
+  HomeScreen({super.key});
 
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
   final RoomService _roomService = RoomService();
 
   @override

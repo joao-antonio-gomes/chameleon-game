@@ -115,7 +115,8 @@ class _CreateRoomDialogState extends State<CreateRoomDialog> {
         if (context.mounted) {
           Navigator.of(context).pop();
 
-          Navigator.of(context).pushReplacement(
+          Navigator.push(
+            context,
             MaterialPageRoute(
               builder: (context) => RoomScreen(roomId: value!.id),
             ),

@@ -44,7 +44,7 @@ class _RoomScreenState extends State<RoomScreen> {
         }
 
         if (!snapshot.hasData || !snapshot.data!.exists) {
-          return const HomeScreen();
+          return HomeScreen();
         }
 
         // Converter o documento em um objeto Room
@@ -60,7 +60,7 @@ class _RoomScreenState extends State<RoomScreen> {
 
         // Verificar se o usuário está na sala
         if (!room.players.contains(FirebaseAuth.instance.currentUser!.uid)) {
-          return const HomeScreen();
+          return HomeScreen();
         }
 
         return _buildRoomScreen(context, room);
@@ -178,14 +178,6 @@ class _RoomScreenState extends State<RoomScreen> {
                           : 'Nova partida'),
                 ),
               ),
-              // const SizedBox(height: 40),
-              // Visibility(
-              //   visible: room.currentTheme != null,
-              //   child: const Text(
-              //     'Novo tema sorteado!',
-              //     style: TextStyle(fontSize: 18),
-              //   ),
-              // ),
               const SizedBox(height: 40),
               Visibility(
                 visible: room.status == RoomStatus.playing,
@@ -221,6 +213,13 @@ class _RoomScreenState extends State<RoomScreen> {
   }
 
   Future<void> _exitRoom(Room room) async {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => HomeScreen(),
+      ),
+    );
+
     var uidExitingPlayer = FirebaseAuth.instance.currentUser!.uid;
 
     await FirebaseFirestore.instance.collection('rooms').doc(room.id).update({
