@@ -55,6 +55,7 @@ class ScreenRouter extends StatelessWidget {
             title: const Text('Home'),
             onTap: () {
               Navigator.pop(context);
+              Navigator.of(context).pushReplacementNamed("/home");
             },
           ),
           ListTile(

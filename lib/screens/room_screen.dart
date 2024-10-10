@@ -188,6 +188,7 @@ class _RoomScreenState extends State<RoomScreen> {
               // ),
               const SizedBox(height: 40),
               Visibility(
+                visible: room.status == RoomStatus.playing,
                 child: ToggleableText(
                     style: const TextStyle(fontSize: 18),
                     text: room.currentChameleon ==
